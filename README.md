@@ -2,10 +2,7 @@
 
 Team: Mae Jemison
 
-Members: Jenny Wang
-         Marie Southworth
-         Samantha Lipsky
-         Zi Nguyen
+Members: Jenny Wang, Marie Southworth, Samantha Lipsky, and Zi Nguyen
 
 Project: Plant Guide
 
