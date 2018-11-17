@@ -24,104 +24,6 @@ const LaunchRequestHandler = {
     },
 };
 
-const LunchIntentHandler = {
-    canHandle(handlerInput) {
-        const request = handlerInput.requestEnvelope.request;
-
-        return request.type === 'IntentRequest' && request.intent.name === 'DiscoverLunchIntent';
-    },
-    handle(handlerInput) {
-        const attributesManager = handlerInput.attributesManager;
-        const responseBuilder = handlerInput.responseBuilder;
-
-        const sessionAttributes = attributesManager.getSessionAttributes();
-        const restaurant = randomArrayElement(getRestaurantsByMeal('lunch'));
-        sessionAttributes.restaurant = restaurant.name;
-        const speechOutput = `Lunch time! Here is a good spot. ${restaurant.name}. Would you like to hear more?`;
-
-        return responseBuilder.speak(speechOutput).reprompt(speechOutput).getResponse();
-    },
-};
-
-/*
-const AttractionIntentHandler = {
-    canHandle(handlerInput) {
-        const request = handlerInput.requestEnvelope.request;
-
-        return request.type === 'IntentRequest' && request.intent.name === 'DiscoverAttractionIntent';
-    },
-    handle(handlerInput) {
-        const attributesManager = handlerInput.attributesManager;
-        const responseBuilder = handlerInput.responseBuilder;
-
-        const sessionAttributes = attributesManager.getSessionAttributes();
-        const attraction = randomArrayElement(getAttractionsByDistance('5'));
-        sessionAttributes.attraction = attraction.name;
-        const speechOutput = `Try out ${attraction.name}. ${attraction.description}. Have fun!`;
-
-        return responseBuilder.speak(speechOutput).reprompt(speechOutput).getResponse();
-    },
-};
-*/
-
-const CoffeeIntentHandler = {
-    canHandle(handlerInput) {
-        const request = handlerInput.requestEnvelope.request;
-
-        return request.type === 'IntentRequest' && request.intent.name === 'DiscoverCoffeeIntent';
-    },
-    handle(handlerInput) {
-        const attributesManager = handlerInput.attributesManager;
-        const responseBuilder = handlerInput.responseBuilder;
-
-        const sessionAttributes = attributesManager.getSessionAttributes();
-        const restaurant = randomArrayElement(getRestaurantsByMeal('coffee'));
-        sessionAttributes.restaurant = restaurant.name;
-        const speechOutput = `For a great coffee shop, I recommend, ${restaurant.name}. Would you like to hear more?`;
-
-        return responseBuilder.speak(speechOutput).reprompt(speechOutput).getResponse();
-    },
-};
-
-
-const BreakfastIntentHandler = {
-    canHandle(handlerInput) {
-        const request = handlerInput.requestEnvelope.request;
-
-        return request.type === 'IntentRequest' && request.intent.name === 'DiscoverBreakfastIntent';
-    },
-    handle(handlerInput) {
-        const attributesManager = handlerInput.attributesManager;
-        const responseBuilder = handlerInput.responseBuilder;
-
-        const sessionAttributes = attributesManager.getSessionAttributes();
-        const restaurant = randomArrayElement(getRestaurantsByMeal('breakfast'));
-        sessionAttributes.restaurant = restaurant.name;
-        const speechOutput = `For breakfast, try this, ${restaurant.name}. Would you like to hear more?`;
-
-        return responseBuilder.speak(speechOutput).reprompt(speechOutput).getResponse();
-    },
-};
-
-const DinnerIntentHandler = {
-    canHandle(handlerInput) {
-        const request = handlerInput.requestEnvelope.request;
-
-        return request.type === 'IntentRequest' && request.intent.name === 'DiscoverDinnerIntent';
-    },
-    handle(handlerInput) {
-        const attributesManager = handlerInput.attributesManager;
-        const responseBuilder = handlerInput.responseBuilder;
-
-        const sessionAttributes = attributesManager.getSessionAttributes();
-        const restaurant = randomArrayElement(getRestaurantsByMeal('dinner'));
-        sessionAttributes.restaurant = restaurant.name;
-        const speechOutput = `Enjoy dinner at, ${restaurant.name}. Would you like to hear more?`;
-
-        return responseBuilder.speak(speechOutput).reprompt(speechOutput).getResponse();
-    },
-};
-
 const AboutIntentHandler = {
     canHandle(handlerInput) {
         const request = handlerInput.requestEnvelope.request;
@@ -129,46 +31,96 @@ const AboutIntentHandler = {
         return request.type === 'IntentRequest' && request.intent.name === 'AboutIntent';
     },
     handle(handlerInput) {
+        console.log("I am here");
+        const request = handlerInput.requestEnvelope.request;
         const attributesManager = handlerInput.attributesManager;
         const responseBuilder = handlerInput.responseBuilder;
 
-        const sessionAttributes = attributesManager.getSessionAttributes();
-        const plantName = sessionAttributes.plant;
+        const plantSlot = request.intent.slots.plant.value;
+        console.log(plantSlot);
+        // if user doesn't specify a plant name, default to Ivy
+        let plantName = 'ivy';
+        if (plantSlot) {
+            plantName = plantSlot;
+        }
+
         const plantDetails = getPlantByName(plantName);
         const speechOutput = `${plantDetails.name
         } is located ${plantDetails.location
         }. You will want to ${plantDetails.waterOccurance
         }, and it needs , ${plantDetails.lighting
-        } `;
+        }. Would you like to hear more?`;
+
+        return responseBuilder
+            .speak(speechOutput)
+            .reprompt(speechOutput)
+            .getResponse();
+    },
+};
+
+const WaterIntentHandler = {
+    canHandle(handlerInput) {
+        const request = handlerInput.requestEnvelope.request;
+
+        return request.type == 'IntentRequest' && request.intent.name == 'WaterIntent';
+    },
+    handle(handlerInput) {
+        const request = handlerInput.requestEnvelope.request;
+        const attributesManager = handlerInput.attributesManager;
+        const responseBuilder = handlerInput.responseBuilder;
+
+        const plantSlot = request.intent.slots.plant.value;
+        let plantName = 'ivy';
+        if (plantSlot) {
+            plantName = plantSlot;
+        }
+
+        const plantDetails = getPlantByName(plantName);
+        const speechOutput = `Watering instructions for ${plantDetails.name}.
+        ${plantDetails.waterOccurance}. Would you like to hear more?`;
 
         const card = `${plantDetails.name}\n${plantDetails.location}\n
             ${plantDetails.waterOccurance}\n${plantDetails.lighting}`;
 
         return responseBuilder
             .speak(speechOutput)
+            .reprompt(speechOutput)
             .withSimpleCard(SKILL_NAME, card)
             .getResponse();
     },
 };
 
-const GoOutIntentHandler = {
+const LightingIntentHandler = {
     canHandle(handlerInput) {
         const request = handlerInput.requestEnvelope.request;
 
-        return request.type === 'IntentRequest' && request.intent.name === 'GoOutIntent';
+        return request.type === 'IntentRequest' && request.intent.name === 'LightingIntent';
     },
     handle(handlerInput) {
-        return new Promise((resolve) => {
-            getWeather((localTime, currentTemp, currentCondition) => {
-                const speechOutput = `It is ${localTime
-                } and the weather in ${data.city
-                } is ${
-                    currentTemp} and ${currentCondition}`;
-                resolve(handlerInput.responseBuilder.speak(speechOutput).reprompt(speechOutput).getResponse());
-            });
-        });
+        const request = handlerInput.requestEnvelope.request;
+        const attributesManager = handlerInput.attributesManager;
+        const responseBuilder = handlerInput.responseBuilder;
+
+        const plantSlot = request.intent.slots.plant.value;
+
+        // if user doesn't specify a plant name, default to Ivy
+        let plantName = 'ivy';
+        if (plantSlot) {
+            plantName = plantSlot;
+        }
+
+        const plantDetails = getPlantByName(plantName);
+        const speechOutput = `${plantDetails.name
+        } needs , ${plantDetails.lighting
+        } Would you like to hear more?`;
+
+        return responseBuilder
+            .speak(speechOutput)
+            .reprompt(speechOutput)
+            .getResponse();
     },
 };
+
 
 const YesHandler = {
     canHandle(handlerInput) {
@@ -303,7 +255,7 @@ const FallbackHandler = {
 const languageStrings = {
     en: {
         translation: {
-            WELCOME: 'Welcome to Plant Guide, where you can ask everything about your current plants in the house.',
+            WELCOME: 'Welcome to Plant Guide, where you can ask everything about your current plants in the house. Say about, to hear more about your current plants, or say last watering, soil condition or order supplies, to hear information about your plants, order supplies on Amazon',
             HELP: 'Say about, to hear more about your current plants, or say last watering, soil condition or order supplies, to hear information about your plants, order supplies on Amazon, or....',
             ABOUT: 'Boston is Massachusetts’ capital and largest city. Founded in 1630, it’s one of the oldest cities in the U.S. The key role it played in the American Revolution is highlighted on the Freedom Trail, a 2.5-mile walking route of historic sites that tells the story of the nation’s founding. One stop, former meeting house Faneuil Hall, is a popular marketplace.',
             STOP: 'Okay, see you next time!',
@@ -317,46 +269,46 @@ const data = {
     postcode: '02142',
     plants: [
         {
-          name: 'Ficus Bonsai Tree',
+          name: 'ficus bonsai tree',
           waterOccurance: 'water generously whenever the soil gets slightly dry.',
           lighting: 'direct sunlight',
-          location: 'indoor'
+          location: 'indoors'
         },
         {
-          name: 'Bamboo',
+          name: 'bamboo',
           waterOccurance: 'monitor when the first 1 to 2 inches of soil becomes dry to damp, it’s time to water bamboo',
           lighting: 'filtered light',
-          location: 'indoor'
+          location: 'indoors'
         },
         {
-          name: 'Jade',
-          waterOccurance: 'Allow to dry between waterings',
-          lighting: 'Put by a south or west window',
-          location: 'indoor'
+          name: 'jade',
+          waterOccurance: 'allow it to dry between waterings',
+          lighting: 'put by a south or west window',
+          location: 'indoors'
         },
         {
-          name: 'Spider Plant',
-          waterOccurance: 'Keep soil moist',
+          name: 'spider plant',
+          waterOccurance: 'Keep the soil moist',
           lighting: 'indirect light',
-          location: 'indoor'
+          location: 'indoors'
         },
         {
-          name: 'Ivy',
-          waterOccurance: 'Allow to dry between waterings',
+          name: 'ivy',
+          waterOccurance: 'allow it to dry between waterings',
           lighting: 'bright light',
-          location: 'indoor'
+          location: 'indoors'
         },
         {
-          name: 'Pothos',
-          waterOccurance: 'Keep soil moist',
-          lighting: 'Adequate light',
-          location: 'indoor'
+          name: 'pothos',
+          waterOccurance: 'keep the soil moist',
+          lighting: 'adequate light',
+          location: 'indoors'
         },
         {
-          name: 'Christmas Cactus',
-          waterOccurance: 'Once a month',
+          name: 'christmas cactus',
+          waterOccurance: 'once a month',
           lighting: 'bright light',
-          location: 'indoor'
+          location: 'indoors'
         }
     ]
 };
@@ -468,19 +420,14 @@ const LocalizationInterceptor = {
 exports.handler = skillBuilder
   .addRequestHandlers(
     LaunchRequestHandler,
-    LunchIntentHandler,
-    CoffeeIntentHandler,
-    BreakfastIntentHandler,
-    DinnerIntentHandler,
     AboutIntentHandler,
-    GoOutIntentHandler,
+    WaterIntentHandler,
+    LightingIntentHandler,
     YesHandler,
     HelpHandler,
     StopHandler,
     FallbackHandler,
     SessionEndedHandler
-    //,
-    //AttractionIntentHandler
   )
   .addErrorHandlers(ErrorHandler)
   .addRequestInterceptors(LocalizationInterceptor)
