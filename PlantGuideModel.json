@@ -1,14 +1,15 @@
 {
     "interactionModel": {
         "languageModel": {
-            "invocationName": "plant guide",
+            "invocationName": "Plant Guide",
             "intents": [
                 {
                     "name": "AboutIntent",
                     "slots": [],
                     "samples": [
                         "about",
-                        "tell me about this plant"
+                        "tell me about this plant",
+                        "what is this plant",
                     ]
                 },
                 {

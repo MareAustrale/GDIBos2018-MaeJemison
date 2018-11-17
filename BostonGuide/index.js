@@ -38,7 +38,7 @@ const LunchIntentHandler = {
         const restaurant = randomArrayElement(getRestaurantsByMeal('lunch'));
         sessionAttributes.restaurant = restaurant.name;
         const speechOutput = `Lunch time! Here is a good spot. ${restaurant.name}. Would you like to hear more?`;
-        
+
         return responseBuilder.speak(speechOutput).reprompt(speechOutput).getResponse();
     },
 };
@@ -47,18 +47,18 @@ const LunchIntentHandler = {
 const AttractionIntentHandler = {
     canHandle(handlerInput) {
         const request = handlerInput.requestEnvelope.request;
-        
+
         return request.type === 'IntentRequest' && request.intent.name === 'DiscoverAttractionIntent';
     },
     handle(handlerInput) {
         const attributesManager = handlerInput.attributesManager;
         const responseBuilder = handlerInput.responseBuilder;
-        
+
         const sessionAttributes = attributesManager.getSessionAttributes();
         const attraction = randomArrayElement(getAttractionsByDistance('5'));
         sessionAttributes.attraction = attraction.name;
         const speechOutput = `Try out ${attraction.name}. ${attraction.description}. Have fun!`;
-        
+
         return responseBuilder.speak(speechOutput).reprompt(speechOutput).getResponse();
     },
 };
@@ -132,11 +132,21 @@ const AboutIntentHandler = {
         const attributesManager = handlerInput.attributesManager;
         const responseBuilder = handlerInput.responseBuilder;
 
-        const requestAttributes = attributesManager.getRequestAttributes();
+        const sessionAttributes = attributesManager.getSessionAttributes();
+        const plantName = sessionAttributes.plant;
+        const plantDetails = getPlantByName(plantName);
+        const speechOutput = `${plantDetails.name
+        } is located ${plantDetails.location
+        }. You will want to ${plantDetails.waterOccurance
+        }, and it needs , ${plantDetails.lighting
+        } `;
+
+        const card = `${plantDetails.name}\n${plantDetails.location}\n
+            ${plantDetails.waterOccurance}\n${plantDetails.lighting}`;
 
         return responseBuilder
-            .speak(requestAttributes.t('ABOUT'))
-            .reprompt(requestAttributes.t('ABOUT'))
+            .speak(speechOutput)
+            .withSimpleCard(SKILL_NAME, card)
             .getResponse();
     },
 };
@@ -293,8 +303,8 @@ const FallbackHandler = {
 const languageStrings = {
     en: {
         translation: {
-            WELCOME: 'Welcome to Boston, Massachusetts, a quintessential blend of colonial history and cutting-edge innovation. You may ask about the city or coffee, lunch, breakfast, dinner places or attractions or say go out',
-            HELP: 'Say about, to hear more about the city, or say coffee, breakfast, lunch, or dinner, to hear local restaurant suggestions, or say recommend an attraction, or say, go outside. ',
+            WELCOME: 'Welcome to Plant Guide, where you can ask everything about your current plants in the house.',
+            HELP: 'Say about, to hear more about your current plants, or say last watering, soil condition or order supplies, to hear information about your plants, order supplies on Amazon, or....',
             ABOUT: 'Boston is Massachusetts’ capital and largest city. Founded in 1630, it’s one of the oldest cities in the U.S. The key role it played in the American Revolution is highlighted on the Freedom Trail, a 2.5-mile walking route of historic sites that tells the story of the nation’s founding. One stop, former meeting house Faneuil Hall, is a popular marketplace.',
             STOP: 'Okay, see you next time!',
         },
@@ -305,77 +315,54 @@ const data = {
     city: 'Boston',
     state: 'MA',
     postcode: '02142',
-    restaurants: [
+    plants: [
         {
-            name: "Zeke's Place",
-            address: '66 East Main Street',
-            phone: '978-283-0474',
-            meals: 'breakfast, lunch',
-            description: 'A cozy and popular spot for breakfast.  Try the blueberry french toast!',
+          name: 'Ficus Bonsai Tree',
+          waterOccurance: 'water generously whenever the soil gets slightly dry.',
+          lighting: 'direct sunlight',
+          location: 'indoor'
         },
         {
-            name: 'Morning Glory Coffee Shop',
-            address: '25 Western Avenue',
-            phone: '978-281-1851',
-            meals: 'coffee, breakfast, lunch',
-            description: 'A homestyle diner located just across the street from the harbor sea wall.',
+          name: 'Bamboo',
+          waterOccurance: 'monitor when the first 1 to 2 inches of soil becomes dry to damp, it’s time to water bamboo',
+          lighting: 'filtered light',
+          location: 'indoor'
         },
         {
-            name: 'Sugar Magnolias',
-            address: '112 Main Street',
-            phone: '978-281-5310',
-            meals: 'breakfast, lunch',
-            description: 'A quaint eatery, popular for weekend brunch.  Try the carrot cake pancakes.',
+          name: 'Jade',
+          waterOccurance: 'Allow to dry between waterings',
+          lighting: 'Put by a south or west window',
+          location: 'indoor'
         },
         {
-            name: 'Seaport Grille',
-            address: '6 Rowe Square',
-            phone: '978-282-9799',
-            meals: 'lunch, dinner',
-            description: 'Serving seafood, steak and casual fare.  Enjoy harbor views on the deck.',
+          name: 'Spider Plant',
+          waterOccurance: 'Keep soil moist',
+          lighting: 'indirect light',
+          location: 'indoor'
         },
         {
-            name: 'Latitude 43',
-            address: '25 Rogers Street',
-            phone: '978-281-0223',
-            meals: 'lunch, dinner',
-            description: 'Features artsy decor and sushi specials.  Live music evenings at the adjoining Minglewood Tavern.',
+          name: 'Ivy',
+          waterOccurance: 'Allow to dry between waterings',
+          lighting: 'bright light',
+          location: 'indoor'
         },
         {
-            name: "George's Coffee Shop",
-            address: '178 Washington Street',
-            phone: '978-281-1910',
-            meals: 'coffee, breakfast, lunch',
-            description: 'A highly rated local diner with generously sized plates.',
-        },
-
-    ],
-    attractions: [
-        {
-            name: 'Whale Watching',
-            description: 'Boston has tour boats that depart twice daily from Rogers street at the harbor.  Try either the 7 Seas Whale Watch, or Captain Bill and Sons Whale Watch. ',
-            distance: '0',
+          name: 'Pothos',
+          waterOccurance: 'Keep soil moist',
+          lighting: 'Adequate light',
+          location: 'indoor'
         },
         {
-            name: 'Good Harbor Beach',
-            description: 'Facing the Atlantic Ocean, Good Harbor Beach has huge expanses of soft white sand that attracts hundreds of visitors every day during the summer.',
-            distance: '2',
-        },
-        {
-            name: 'Rockport',
-            description: 'A quaint New England town, Rockport is famous for rocky beaches, seaside parks, lobster fishing boats, and several art studios.',
-            distance: '4',
-        },
-        {
-            name: 'Fenway Park',
-            description: 'Home of the Boston Red Sox, Fenway park hosts baseball games From April until October, and is open for tours. ',
-            distance: '38',
-        },
-    ],
+          name: 'Christmas Cactus',
+          waterOccurance: 'Once a month',
+          lighting: 'bright light',
+          location: 'indoor'
+        }
+    ]
 };
 
-const SKILL_NAME = 'Boston Guide';
-const FALLBACK_MESSAGE = `The ${SKILL_NAME} skill can\'t help you with that.  It can help you learn about Boston if you say tell me about this place. What can I help you with?`;
+const SKILL_NAME = 'Plant Guide';
+const FALLBACK_MESSAGE = `The ${SKILL_NAME} skill can\'t help you with that.  It can help you learn about the plants in your house if you say tell me about this plant. What can I help you with?`;
 const FALLBACK_REPROMPT = 'What can I help you with?';
 
 
@@ -389,6 +376,16 @@ const myAPI = {
     path: `/v1/public/yql?q=select%20*%20from%20weather.forecast%20where%20woeid%20in%20(select%20woeid%20from%20geo.places(1)%20where%20text%3D%22${encodeURIComponent(data.city)}%2C%20${data.state}%22)&format=json&env=store%3A%2F%2Fdatatables.org%2Falltableswithkeys`,
     method: 'GET',
 };
+
+function getPlantByName(plantName) {
+    let plant = {};
+    for (let i = 0; i < data.plants.length; i += 1) {
+        if (data.plants[i].name === plantName) {
+            plant = data.plants[i];
+        }
+    }
+    return plant;
+}
 
 function getRestaurantsByMeal(mealType) {
     const list = [];
