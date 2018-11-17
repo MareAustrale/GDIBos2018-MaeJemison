@@ -1,0 +1,96 @@
+{
+    "interactionModel": {
+        "languageModel": {
+            "invocationName": "plant guide",
+            "intents": [
+                {
+                    "name": "AboutIntent",
+                    "slots": [],
+                    "samples": [
+                        "about",
+                        "tell me about this plant"
+                    ]
+                },
+                {
+                    "name": "AMAZON.CancelIntent",
+                    "samples": []
+                },
+                {
+                    "name": "AMAZON.HelpIntent",
+                    "samples": []
+                },
+                {
+                    "name": "AMAZON.NoIntent",
+                    "samples": []
+                },
+                {
+                    "name": "AMAZON.StopIntent",
+                    "samples": []
+                },
+                {
+                    "name": "AMAZON.YesIntent",
+                    "samples": []
+                },
+                {
+                    "name": "DiscoverBreakfastIntent",
+                    "slots": [],
+                    "samples": [
+                        "breakfast"
+                    ]
+                },
+                {
+                    "name": "DiscoverCoffeeIntent",
+                    "slots": [],
+                    "samples": [
+                        "coffee"
+                    ]
+                },
+                {
+                    "name": "DiscoverDinnerIntent",
+                    "slots": [],
+                    "samples": [
+                        "dinner"
+                    ]
+                },
+                {
+                    "name": "GoOutIntent",
+                    "slots": [],
+                    "samples": [
+                        "go out",
+                        "go outside",
+                        "lets go out"
+                    ]
+                },
+                {
+                    "name": "DiscoverLunchIntent",
+                    "slots": [],
+                    "samples": [
+                        "lunch"
+                    ]
+                },
+                {
+                    "name": "AMAZON.FallbackIntent",
+                    "samples": []
+                },
+                {
+                    "name": "DiscoverAttractionIntent",
+                    "slots": [
+                        {
+                            "name": "distance",
+                            "type": "AMAZON.NUMBER"
+                        }
+                    ],
+                    "samples": [
+                        "attraction {distance}",
+                        "things to do",
+                        "sightseeing",
+                        "attractions",
+                        "tell me a good attraction near by",
+                        "attraction"
+                    ]
+                }
+            ],
+            "types": []
+        }
+    }
+}
