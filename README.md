@@ -1,4 +1,4 @@
-# GDIBos2018-MaeJemison
+# Girl Develop It Boston Hackathon 2018
 
 Team: Mae Jemison
 
