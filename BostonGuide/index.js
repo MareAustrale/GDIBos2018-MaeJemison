@@ -31,13 +31,13 @@ const AboutIntentHandler = {
         return request.type === 'IntentRequest' && request.intent.name === 'AboutIntent';
     },
     handle(handlerInput) {
-        console.log("I am here");
         const request = handlerInput.requestEnvelope.request;
         const attributesManager = handlerInput.attributesManager;
         const responseBuilder = handlerInput.responseBuilder;
 
-        const plantSlot = request.intent.slots.plant.value;
-        console.log(plantSlot);
+        // const plantSlot = request.intent.slots.plant.value;
+        const plantSlot = request.intent.slots.plant.resolutions.resolutionsPerAuthority[0].values[0].value.name;
+        // console.log(plantSlot);
         // if user doesn't specify a plant name, default to Ivy
         let plantName = 'ivy';
         if (plantSlot) {
@@ -45,11 +45,8 @@ const AboutIntentHandler = {
         }
 
         const plantDetails = getPlantByName(plantName);
-        const speechOutput = `${plantDetails.name
-        } is located ${plantDetails.location
-        }. You will want to ${plantDetails.waterOccurance
-        }, and it needs , ${plantDetails.lighting
-        }. Would you like to hear more?`;
+        const speechOutput = `${plantDetails.about
+        }. Would you like to know more about your plant? You can ask me about how much water a plant needs or its lighting condition.`;
 
         return responseBuilder
             .speak(speechOutput)
@@ -69,7 +66,9 @@ const WaterIntentHandler = {
         const attributesManager = handlerInput.attributesManager;
         const responseBuilder = handlerInput.responseBuilder;
 
-        const plantSlot = request.intent.slots.plant.value;
+        const plantSlot = request.intent.slots.plant.resolutions.resolutionsPerAuthority[0].values[0].value.name;
+        // console.log(plantSlot);
+        // if user doesn't specify a plant name, default to Ivy
         let plantName = 'ivy';
         if (plantSlot) {
             plantName = plantSlot;
@@ -77,10 +76,10 @@ const WaterIntentHandler = {
 
         const plantDetails = getPlantByName(plantName);
         const speechOutput = `Watering instructions for ${plantDetails.name}.
-        ${plantDetails.waterOccurance}. Would you like to hear more?`;
+        ${plantDetails.waterOccurence}. Would you like to hear more?`;
 
         const card = `${plantDetails.name}\n${plantDetails.location}\n
-            ${plantDetails.waterOccurance}\n${plantDetails.lighting}`;
+            ${plantDetails.waterOccurence}\n${plantDetails.lighting}`;
 
         return responseBuilder
             .speak(speechOutput)
@@ -101,8 +100,8 @@ const LightingIntentHandler = {
         const attributesManager = handlerInput.attributesManager;
         const responseBuilder = handlerInput.responseBuilder;
 
-        const plantSlot = request.intent.slots.plant.value;
-
+        const plantSlot = request.intent.slots.plant.resolutions.resolutionsPerAuthority[0].values[0].value.name;
+        // console.log(plantSlot);
         // if user doesn't specify a plant name, default to Ivy
         let plantName = 'ivy';
         if (plantSlot) {
@@ -121,6 +120,29 @@ const LightingIntentHandler = {
     },
 };
 
+const ScheduleReminderIntent = {
+    canHandle(handlerInput) {
+        const request = handlerInput.requestEnvelope.request;
+
+        return request.type === 'IntentRequest' && request.intent.name === 'ScheduleReminderIntent';
+    },
+    handle(handlerInput) {
+        const request = handlerInput.requestEnvelope.request;
+        const attributesManager = handlerInput.attributesManager;
+        const responseBuilder = handlerInput.responseBuilder;
+
+        const reminder = request.intent.slots.reminder.value;
+        const date = request.intent.slots.date.value;
+        const time = request.intent.slots.time.value;
+
+        const speechOutput = `Very well. I will remind you to ${reminder} on ${date} at ${time}`;
+
+        return responseBuilder
+            .speak(speechOutput)
+            .reprompt(speechOutput)
+            .getResponse();
+    },
+};
 
 const YesHandler = {
     canHandle(handlerInput) {
@@ -255,7 +277,7 @@ const FallbackHandler = {
 const languageStrings = {
     en: {
         translation: {
-            WELCOME: 'Welcome to Plant Guide, where you can ask everything about your current plants in the house. Say about, to hear more about your current plants, or say last watering, soil condition or order supplies, to hear information about your plants, order supplies on Amazon',
+            WELCOME: 'Welcome to Plant Guide, where you can ask everything about your current plants in the house, or any other plants that you are curious about. Say tell me about Ivy or any plant to hear more about your current plants, or say last watering, soil condition or order supplieson Amazon',
             HELP: 'Say about, to hear more about your current plants, or say last watering, soil condition or order supplies, to hear information about your plants, order supplies on Amazon, or....',
             ABOUT: 'Boston is Massachusetts’ capital and largest city. Founded in 1630, it’s one of the oldest cities in the U.S. The key role it played in the American Revolution is highlighted on the Freedom Trail, a 2.5-mile walking route of historic sites that tells the story of the nation’s founding. One stop, former meeting house Faneuil Hall, is a popular marketplace.',
             STOP: 'Okay, see you next time!',
@@ -269,46 +291,53 @@ const data = {
     postcode: '02142',
     plants: [
         {
-          name: 'ficus bonsai tree',
-          waterOccurance: 'water generously whenever the soil gets slightly dry.',
+          name: 'Ficus Bonsai Tree',
+          about: 'Also known as the common Fig and Chinese Banyan, this bonsai tree grows naturally in Southwest Asia. There are hundreds of species, most of them tropical and evergreen, although some are deciduous. Many varieties are natural dwarfs. Ficus is one of the most popular trees for indoor Bonsai. It is an excellent tree for beginners and pros alike. Virtually care free; they tolerate low light and humidity of a heated or air-conditioned house. The “banyan” style roots are commonly trained in a root-over-rock style.',
+          waterOccurence: 'water generously whenever the soil gets slightly dry.',
           lighting: 'direct sunlight',
-          location: 'indoors'
+          location: 'indoor'
         },
         {
-          name: 'bamboo',
-          waterOccurance: 'monitor when the first 1 to 2 inches of soil becomes dry to damp, it’s time to water bamboo',
+          name: 'Lucky Bamboo',
+          about: 'Lucky bamboo is a houseplant that grows in water. Its canes, stalks or stems resemble the canes of a bamboo plant. Lucky Bamboo has been a part of Chinese culture for thousands of years but has really skyrocketed into popularity in the past 15 years and is now commonly found in many parts of the world.',
+          waterOccurence: 'monitor when the first 1 to 2 inches of soil becomes dry to damp, it’s time to water bamboo',
           lighting: 'filtered light',
-          location: 'indoors'
+          location: 'indoor'
         },
         {
-          name: 'jade',
-          waterOccurance: 'allow it to dry between waterings',
+          name: 'Jade',
+          about: 'Jade plant, a symbol of good luck, is a succulent plant with small pink or white flowers. It is native to South Africa and Mozambique, and is common as a houseplant worldwide. ',
+          waterOccurence: 'allow to dry between waterings',
           lighting: 'put by a south or west window',
-          location: 'indoors'
+          location: 'indoor'
         },
         {
-          name: 'spider plant',
-          waterOccurance: 'Keep the soil moist',
+          name: 'Spider Plant',
+          about: 'The spider plant is considered one of the most adaptable of houseplants and the easiest to grow. This plant can grow in a wide range of conditions and suffers from few problems, other than brown tips. The spider plant is so named because of its spider-like plants, or spiderettes, which dangle down from the mother plant like spiders on a web. Available in green or variegated varieties, these spiderettes often start out as small white flowers.',
+          waterOccurence: 'Keep soil moist',
           lighting: 'indirect light',
-          location: 'indoors'
+          location: 'indoor'
         },
         {
-          name: 'ivy',
-          waterOccurance: 'allow it to dry between waterings',
+          name: 'Ivy',
+          about: 'ivy is a genus of 12–15 species of evergreen climbing or ground-creeping woody plants in the family Araliaceae, native to western, central and southern Europe, Macaronesia, northwestern Africa and across central-southern Asia east to Japan and Taiwan.',
+          waterOccurence: 'allow to dry between waterings',
           lighting: 'bright light',
-          location: 'indoors'
+          location: 'indoor'
         },
         {
-          name: 'pothos',
-          waterOccurance: 'keep the soil moist',
+          name: 'Pothos',
+          about: 'Indoors, the pothos plant usually confines itself to about six to 10 feet. Its leaves are bright and waxy with a noteworthy pointed heart shape, and are often green or variegated in white, yellow, or pale green. It is rare for them to flower or produce berries, especially indoors, but certain varietals can have tiny, petal-less white flowers that feature small berries.',
+          waterOccurence: 'keep soil moist',
           lighting: 'adequate light',
-          location: 'indoors'
+          location: 'indoor'
         },
         {
-          name: 'christmas cactus',
-          waterOccurance: 'once a month',
+          name: 'Christmas Cactus',
+          about: 'A Christmas Cactus is a tropical plant that does not naturally exist in nature. It was bred from two unique parent plants that both grow in the South American rainforests, specifically in Brazil. The plant is recognizable by its segmented stem and the brightly colored blooms that appear at the ends of them. Blooms are typically red, pink, purple, yellow, or white, and the blooms can occur at different times throughout the year. Most notably, they can appear near Christmas, which is where the name is derived.',
+          waterOccurence: 'once a month',
           lighting: 'bright light',
-          location: 'indoors'
+          location: 'indoor'
         }
     ]
 };
@@ -423,6 +452,7 @@ exports.handler = skillBuilder
     AboutIntentHandler,
     WaterIntentHandler,
     LightingIntentHandler,
+    ScheduleReminderIntent,
     YesHandler,
     HelpHandler,
     StopHandler,
