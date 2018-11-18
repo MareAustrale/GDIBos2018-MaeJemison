@@ -2,6 +2,10 @@ const Alexa = require('ask-sdk-core');
 const i18n = require('i18next');
 const sprintf = require('i18next-sprintf-postprocessor');
 const https = require('https');
+// Load the SDK for JavaScript
+var AWS = require('aws-sdk');
+// Set the region
+AWS.config.update({region: 'us-east-1'});
 
 const skillBuilder = Alexa.SkillBuilders.custom();
 
@@ -35,9 +39,8 @@ const AboutIntentHandler = {
         const attributesManager = handlerInput.attributesManager;
         const responseBuilder = handlerInput.responseBuilder;
 
-        // const plantSlot = request.intent.slots.plant.value;
-        const plantSlot = request.intent.slots.plant.resolutions.resolutionsPerAuthority[0].values[0].value.name;
-        // console.log(plantSlot);
+        const plantSlot = request.intent.slots.plant.value;
+        console.log(plantSlot);
         // if user doesn't specify a plant name, default to Ivy
         let plantName = 'ivy';
         if (plantSlot) {
@@ -45,8 +48,11 @@ const AboutIntentHandler = {
         }
 
         const plantDetails = getPlantByName(plantName);
-        const speechOutput = `${plantDetails.about
-        }. Would you like to know more about your plant? You can ask me about how much water a plant needs or its lighting condition.`;
+        const speechOutput = `${plantDetails.name
+        } is located ${plantDetails.location
+        }. You will want to ${plantDetails.waterOccurance
+        }, and it needs , ${plantDetails.lighting
+        } Would you like to hear more?`;
 
         return responseBuilder
             .speak(speechOutput)
@@ -66,9 +72,7 @@ const WaterIntentHandler = {
         const attributesManager = handlerInput.attributesManager;
         const responseBuilder = handlerInput.responseBuilder;
 
-        const plantSlot = request.intent.slots.plant.resolutions.resolutionsPerAuthority[0].values[0].value.name;
-        // console.log(plantSlot);
-        // if user doesn't specify a plant name, default to Ivy
+        const plantSlot = request.intent.slots.plant.value;
         let plantName = 'ivy';
         if (plantSlot) {
             plantName = plantSlot;
@@ -76,10 +80,10 @@ const WaterIntentHandler = {
 
         const plantDetails = getPlantByName(plantName);
         const speechOutput = `Watering instructions for ${plantDetails.name}.
-        ${plantDetails.waterOccurence}. Would you like to hear more?`;
+        ${plantDetails.waterOccurance}. Would you like to hear more?`;
 
         const card = `${plantDetails.name}\n${plantDetails.location}\n
-            ${plantDetails.waterOccurence}\n${plantDetails.lighting}`;
+            ${plantDetails.waterOccurance}\n${plantDetails.lighting}`;
 
         return responseBuilder
             .speak(speechOutput)
@@ -100,8 +104,8 @@ const LightingIntentHandler = {
         const attributesManager = handlerInput.attributesManager;
         const responseBuilder = handlerInput.responseBuilder;
 
-        const plantSlot = request.intent.slots.plant.resolutions.resolutionsPerAuthority[0].values[0].value.name;
-        // console.log(plantSlot);
+        const plantSlot = request.intent.slots.plant.value;
+
         // if user doesn't specify a plant name, default to Ivy
         let plantName = 'ivy';
         if (plantSlot) {
@@ -120,29 +124,74 @@ const LightingIntentHandler = {
     },
 };
 
-const ScheduleReminderIntent = {
+// As long as valid slot exists for the plant_name, can add into database
+const SetLastWaterIntentHandler = {
     canHandle(handlerInput) {
-        const request = handlerInput.requestEnvelope.request;
+      const request = handlerInput.requestEnvelope.request;
+      return request.type === 'IntentRequest' && request.intent.name === 'SetLastWaterIntent';
+    },
+    handle(handlerInput) {
+       const request = handlerInput.requestEnvelope.request;
+       const attributesManager = handlerInput.attributesManager;
+       const responseBuilder = handlerInput.responseBuilder;
 
-        return request.type === 'IntentRequest' && request.intent.name === 'ScheduleReminderIntent';
+       const plantSlot = request.intent.slots.plant.value;
+       let plantName = "no plant";
+       if (plantSlot) {
+         plantName = plantSlot;
+       }
+       //get time of last water, currently hardcoded to now
+       lastWaterTime = Date.now()/1000;
+
+       //write check to make sure plantName isn't already in DB
+       // if it is in DB, can update the lastWater field to now
+
+       console.log("Print Set Last Water Intent Info (plantname, lastWaterTime):");
+       setLastWater(plantName, lastWaterTime);
+
+       const speechOutput = `Added ${plantName} to plant app database. Set today as
+              last time ${plantName} was watered. Would you like to hear more?`
+
+       return responseBuilder
+            .speak(speechOutput)
+            .reprompt(speechOutput)
+            .getResponse();
+    }
+}
+
+
+const GetLastWaterIntentHandler = {
+    canHandle(handlerInput) {
+      const request = handlerInput.requestEnvelope.request;
+
+      return request.type === 'IntentRequest' && request.intent.name === 'GetLastWaterIntent';
     },
     handle(handlerInput) {
         const request = handlerInput.requestEnvelope.request;
         const attributesManager = handlerInput.attributesManager;
         const responseBuilder = handlerInput.responseBuilder;
 
-        const reminder = request.intent.slots.reminder.value;
-        const date = request.intent.slots.date.value;
-        const time = request.intent.slots.time.value;
+        const plantSlot = request.intent.slots.plant.value;
 
-        const speechOutput = `Very well. I will remind you to ${reminder} on ${date} at ${time}`;
+        // if user doesn't specify plant name, dedault to ivy
+        let plantName = 'ivy';
+        if (plantSlot) {
+            plantName = plantSlot;
+        }
+
+        //const plantDetails = getPlantByName(plantName);
+        var lastWaterDate = getLastWater(plantName);
+
+        const speechOutput = `The last time ${plantName} was watered was ${lastWaterDate}
+        Would you like to hear more?`;
 
         return responseBuilder
             .speak(speechOutput)
             .reprompt(speechOutput)
             .getResponse();
-    },
+    }
 };
+
 const KindIntentHandler = {
     canHandle(handlerInput) {
         const request = handlerInput.requestEnvelope.request;
@@ -297,8 +346,8 @@ const FallbackHandler = {
 const languageStrings = {
     en: {
         translation: {
-            WELCOME: 'Welcome to Plant Guide, where you can ask everything about your current plants in the house, or any other plants that you are curious about. Say tell me about Ivy or any plant to hear more about your current plants, or say last watering, soil condition or order supplie son Amazon',
-            HELP: 'Say about, to hear more about your current plants, or say last watering, soil condition or order supplies, to hear information about your plants, order supplies on Amazon, or say kind words',
+            WELCOME: 'Welcome to Plant Guide, where you can ask everything about your current plants in the house. Say about, to hear more about your current plants, or say last watering, soil condition or order supplies, to hear information about your plants, order supplies on Amazon',
+            HELP: 'Say about, to hear more about your current plants, or say last watering, soil condition or order supplies, to hear information about your plants, order supplies on Amazon, or....',
             ABOUT: 'Boston is Massachusetts’ capital and largest city. Founded in 1630, it’s one of the oldest cities in the U.S. The key role it played in the American Revolution is highlighted on the Freedom Trail, a 2.5-mile walking route of historic sites that tells the story of the nation’s founding. One stop, former meeting house Faneuil Hall, is a popular marketplace.',
             STOP: 'Okay, see you next time!',
         },
@@ -306,55 +355,49 @@ const languageStrings = {
     // , 'de-DE': { 'translation' : { 'TITLE'   : "Local Helfer etc." } }
 };
 const data = {
-    city: 'Boston',
-    state: 'MA',
-    postcode: '02142',
-    kind: "You are beautiful in everything you do. The world can't bring you down.",
     plants: [
         {
-          name: 'Ficus Bonsai Tree',
-          about: 'Also known as the common Fig and Chinese Banyan, this bonsai tree grows naturally in Southwest Asia. There are hundreds of species, most of them tropical and evergreen, although some are deciduous. Many varieties are natural dwarfs. Ficus is one of the most popular trees for indoor Bonsai. It is an excellent tree for beginners and pros alike. Virtually care free; they tolerate low light and humidity of a heated or air-conditioned house. The “banyan” style roots are commonly trained in a root-over-rock style.',
-          waterOccurence: 'water generously whenever the soil gets slightly dry.',
+          name: 'ficus bonsai tree',
+          waterOccurance: 'water generously whenever the soil gets slightly dry.',
           lighting: 'direct sunlight',
           location: 'indoor'
         },
         {
-          name: 'Lucky Bamboo',
-          about: 'Lucky bamboo is a houseplant that grows in water. Its canes, stalks or stems resemble the canes of a bamboo plant. Lucky Bamboo has been a part of Chinese culture for thousands of years but has really skyrocketed into popularity in the past 15 years and is now commonly found in many parts of the world.',
-          waterOccurence: 'monitor when the first 1 to 2 inches of soil becomes dry to damp, it’s time to water bamboo',
+          name: 'bamboo',
+          waterOccurance: 'monitor when the first 1 to 2 inches of soil becomes dry to damp, it’s time to water bamboo',
           lighting: 'filtered light',
           location: 'indoor'
         },
         {
-          name: 'Jade',
+          name: 'jade',
           about: 'Jade plant, a symbol of good luck, is a succulent plant with small pink or white flowers. It is native to South Africa and Mozambique, and is common as a houseplant worldwide. ',
           waterOccurence: 'allow to dry between waterings',
           lighting: 'put by a south or west window',
           location: 'indoor'
         },
         {
-          name: 'Spider Plant',
+          name: 'spider plant',
           about: 'The spider plant is considered one of the most adaptable of houseplants and the easiest to grow. This plant can grow in a wide range of conditions and suffers from few problems, other than brown tips. The spider plant is so named because of its spider-like plants, or spiderettes, which dangle down from the mother plant like spiders on a web. Available in green or variegated varieties, these spiderettes often start out as small white flowers.',
           waterOccurence: 'Keep soil moist',
           lighting: 'indirect light',
           location: 'indoor'
         },
         {
-          name: 'Ivy',
+          name: 'ivy',
           about: 'ivy is a genus of 12–15 species of evergreen climbing or ground-creeping woody plants in the family Araliaceae, native to western, central and southern Europe, Macaronesia, northwestern Africa and across central-southern Asia east to Japan and Taiwan.',
           waterOccurence: 'allow to dry between waterings',
           lighting: 'bright light',
           location: 'indoor'
         },
         {
-          name: 'Pothos',
+          name: 'pothos',
           about: 'Indoors, the pothos plant usually confines itself to about six to 10 feet. Its leaves are bright and waxy with a noteworthy pointed heart shape, and are often green or variegated in white, yellow, or pale green. It is rare for them to flower or produce berries, especially indoors, but certain varietals can have tiny, petal-less white flowers that feature small berries.',
           waterOccurence: 'keep soil moist',
           lighting: 'adequate light',
           location: 'indoor'
         },
         {
-          name: 'Christmas Cactus',
+          name: 'christmas cactus',
           about: 'A Christmas Cactus is a tropical plant that does not naturally exist in nature. It was bred from two unique parent plants that both grow in the South American rainforests, specifically in Brazil. The plant is recognizable by its segmented stem and the brightly colored blooms that appear at the ends of them. Blooms are typically red, pink, purple, yellow, or white, and the blooms can occur at different times throughout the year. Most notably, they can appear near Christmas, which is where the name is derived.',
           waterOccurence: 'once a month',
           lighting: 'bright light',
@@ -389,36 +432,62 @@ function getPlantByName(plantName) {
     return plant;
 }
 
-function getRestaurantsByMeal(mealType) {
-    const list = [];
-    for (let i = 0; i < data.restaurants.length; i += 1) {
-        if (data.restaurants[i].meals.search(mealType) > -1) {
-            list.push(data.restaurants[i]);
+//Calling DynamoDB, sets
+function setLastWater(plantName, lastWater){
+    var docClient = new AWS.DynamoDB.DocumentClient();
+    var table = "GDI-HackathonPlants";
+
+    var params = {
+        TableName:table,
+        Item:{
+            "Name": plantName,
+            "LastWater": lastWater,
         }
-    }
-    return list;
+    };
+
+    console.log("Adding a new item...");
+    docClient.put(params, function(err, data) {
+        if (err) {
+            console.error("Unable to add item. Error JSON:", JSON.stringify(err, null, 2));
+        } else {
+            console.log("Added item:", JSON.stringify(data, null, 2));
+        }
+    });
+};
+
+// Calling from DynamoDB, get
+function getLastWater(plantName) {
+//    var lastWaterDate = 0;
+    var docClient = new AWS.DynamoDB.DocumentClient();
+
+    var table = "GDI-HackathonPlants";
+    var name = plantName;
+    var params = {
+        TableName:table,
+        Key: {
+          "Name": name,
+        }
+    };
+
+    var promiseGet = new Promise((resolve,reject) => {
+        docClient.get(params, function(err, plantObject) {
+            if (err) {
+              console.error("Unable to read item. Error JSON:", JSON.stringify(err, null,2));
+            } else{
+              //console.log("getLastWater succeeded", JSON.stringify(plantObject));
+              //console.log("lastWaterSec: ", plantObject.Item.LastWater);
+              lastWaterSec = plantObject.Item.LastWater;
+              resolve(lastWaterSec);
+            }
+        });
+      });
+
+        var lastWaterDate = new Date(0); // The 0 there is the key, which sets the date to the epoch
+        lastWaterDate.setUTCSeconds(lastWaterSec);
+        return lastWaterDate;
 }
 
-function getRestaurantByName(restaurantName) {
-    let restaurant = {};
-    for (let i = 0; i < data.restaurants.length; i += 1) {
-        if (data.restaurants[i].name === restaurantName) {
-            restaurant = data.restaurants[i];
-        }
-    }
-    return restaurant;
-}
 
-function getAttractionsByDistance(maxDistance) {
-    const list = [];
-
-    for (let i = 0; i < data.attractions.length; i += 1) {
-        if (parseInt(data.attractions[i].distance, 10) <= maxDistance) {
-            list.push(data.attractions[i]);
-        }
-    }
-    return list;
-}
 
 function getWeather(callback) {
     const req = https.request(myAPI, (res) => {
@@ -473,6 +542,8 @@ exports.handler = skillBuilder
     AboutIntentHandler,
     WaterIntentHandler,
     LightingIntentHandler,
+    GetLastWaterIntentHandler,
+    SetLastWaterIntentHandler,
     ScheduleReminderIntent,
     KindIntentHandler,
     YesHandler,
