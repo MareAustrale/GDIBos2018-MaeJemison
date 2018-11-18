@@ -143,7 +143,27 @@ const ScheduleReminderIntent = {
             .getResponse();
     },
 };
+const KindIntentHandler = {
+    canHandle(handlerInput) {
+        const request = handlerInput.requestEnvelope.request;
 
+        return request.type === 'IntentRequest' && request.intent.name === 'KindIntent';
+    },
+    handle(handlerInput) {
+        const request = handlerInput.requestEnvelope.request;
+        const attributesManager = handlerInput.attributesManager;
+        const responseBuilder = handlerInput.responseBuilder;
+
+        const kind = request.intent.slots.kind.value;
+
+        const speechOutput = `Ok, here is a kind phrase ${data.kind}`;
+
+        return responseBuilder
+            .speak(speechOutput)
+            .reprompt(speechOutput)
+            .getResponse();
+    },
+};
 const YesHandler = {
     canHandle(handlerInput) {
         const request = handlerInput.requestEnvelope.request;
@@ -277,8 +297,8 @@ const FallbackHandler = {
 const languageStrings = {
     en: {
         translation: {
-            WELCOME: 'Welcome to Plant Guide, where you can ask everything about your current plants in the house, or any other plants that you are curious about. Say tell me about Ivy or any plant to hear more about your current plants, or say last watering, soil condition or order supplieson Amazon',
-            HELP: 'Say about, to hear more about your current plants, or say last watering, soil condition or order supplies, to hear information about your plants, order supplies on Amazon, or....',
+            WELCOME: 'Welcome to Plant Guide, where you can ask everything about your current plants in the house, or any other plants that you are curious about. Say tell me about Ivy or any plant to hear more about your current plants, or say last watering, soil condition or order supplie son Amazon',
+            HELP: 'Say about, to hear more about your current plants, or say last watering, soil condition or order supplies, to hear information about your plants, order supplies on Amazon, or say kind words',
             ABOUT: 'Boston is Massachusetts’ capital and largest city. Founded in 1630, it’s one of the oldest cities in the U.S. The key role it played in the American Revolution is highlighted on the Freedom Trail, a 2.5-mile walking route of historic sites that tells the story of the nation’s founding. One stop, former meeting house Faneuil Hall, is a popular marketplace.',
             STOP: 'Okay, see you next time!',
         },
@@ -289,6 +309,7 @@ const data = {
     city: 'Boston',
     state: 'MA',
     postcode: '02142',
+    kind: "You are beautiful in everything you do. The world can't bring you down.",
     plants: [
         {
           name: 'Ficus Bonsai Tree',
@@ -453,6 +474,7 @@ exports.handler = skillBuilder
     WaterIntentHandler,
     LightingIntentHandler,
     ScheduleReminderIntent,
+    KindIntentHandler,
     YesHandler,
     HelpHandler,
     StopHandler,
