@@ -50,7 +50,7 @@ const AboutIntentHandler = {
         const plantDetails = getPlantByName(plantName);
         const speechOutput = `${plantDetails.name
         } is located ${plantDetails.location
-        }. You will want to ${plantDetails.waterOccurance
+        }. You will want to ${plantDetails.waterOccurence
         }, and it needs , ${plantDetails.lighting
         } Would you like to hear more?`;
 
@@ -80,10 +80,10 @@ const WaterIntentHandler = {
 
         const plantDetails = getPlantByName(plantName);
         const speechOutput = `Watering instructions for ${plantDetails.name}.
-        ${plantDetails.waterOccurance}. Would you like to hear more?`;
+        ${plantDetails.waterOccurence}. Would you like to hear more?`;
 
         const card = `${plantDetails.name}\n${plantDetails.location}\n
-            ${plantDetails.waterOccurance}\n${plantDetails.lighting}`;
+            ${plantDetails.waterOccurence}\n${plantDetails.lighting}`;
 
         return responseBuilder
             .speak(speechOutput)
@@ -358,13 +358,13 @@ const data = {
     plants: [
         {
           name: 'ficus bonsai tree',
-          waterOccurance: 'water generously whenever the soil gets slightly dry.',
+          waterOccurence: 'water generously whenever the soil gets slightly dry.',
           lighting: 'direct sunlight',
           location: 'indoor'
         },
         {
           name: 'bamboo',
-          waterOccurance: 'monitor when the first 1 to 2 inches of soil becomes dry to damp, it’s time to water bamboo',
+          waterOccurence: 'monitor when the first 1 to 2 inches of soil becomes dry to damp, it’s time to water bamboo',
           lighting: 'filtered light',
           location: 'indoor'
         },
